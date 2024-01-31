@@ -9,7 +9,7 @@ from selenium.common.exceptions import NoSuchElementException
 import json
 
 
-def get_cookie_for_auth(username: str, password: str):
+def get_cookie_for_auth(username: str, password: str) -> str:
     options = Options()
     options.page_load_strategy = "eager"
     options.add_argument("--headless=new")
@@ -25,7 +25,7 @@ def get_cookie_for_auth(username: str, password: str):
     username_field.send_keys(username)
     password_field.send_keys(password + Keys.RETURN)
     try:
-        incorrect_data = driver.find_element(
+        driver.find_element(
             By.XPATH,
             "//table[@class='mt']//tr[@class='mid'][2]//td[@class='ct warning']",
         )
