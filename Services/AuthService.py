@@ -9,7 +9,7 @@ from selenium.common.exceptions import NoSuchElementException
 import json
 
 
-def get_cookie_for_auth(username: str, password: str) -> str:
+def get_cookie_for_univer(username: str, password: str) -> dict | str:
     options = Options()
     options.page_load_strategy = "eager"
     options.add_argument("--headless=new")
@@ -41,4 +41,4 @@ def get_cookie_for_auth(username: str, password: str) -> str:
                 cookie_values[name] = value
 
         json_cookie = json.dumps(cookie_values)
-        return json_cookie
+        return cookie_values
