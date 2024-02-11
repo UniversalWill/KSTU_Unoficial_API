@@ -1,13 +1,11 @@
 import requests
-from requests.cookies import cookiejar_from_dict
-from Services.AuthService import get_cookie_for_univer
-from Services.UserService import User
-
-user = User(username="ivachshenko.gennadiy", password="5t8x9m780265_")
+from bs4 import BeautifulSoup
+from .AuthService import get_cookie_for_univer
 
 
 def get_shedule(user):
     url = "http://univer.kstu.kz/student/myschedule/"
+    days = ["ПН", "ВТ", "СР", "ЧТ", "ПТ", "СБ"]
     headers = {
         "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
@@ -17,10 +15,35 @@ def get_shedule(user):
         "Upgrade-Insecure-Requests": "1",
     }
 
-    dict_cookie = get_cookie_for_univer(user.username, user.password)
-    cookies = cookiejar_from_dict(dict_cookie)
+    dict_cookie = get_cookie_for_univer(user)
     session = requests.session()
-    session.cookies.update(cookies)
+    session.cookies.update(dict_cookie)
     response = session.get(url, headers=headers)
 
-    print(response.text)
+    schedule_data = {}
+    soup = BeautifulSoup(response.text, "html.parser")
+    table_element = soup.find("table", class_="schedule")
+
+    for day in days:
+        schedule_data[day] = {}
+        day_column_index = days.index(day) + 1
+        rows = table_element.select(f"tr td:nth-child({day_column_index}) div.groups")
+
+        for row in rows:
+            time = row.find_previous("td", class_="time").text.strip()
+            course = row.find("p", class_="teacher").text.strip()
+            instructor = row.select_one("p.teacher ~ p.teacher").text.strip()
+            location = row.select_one("span.aud_faculty + span").text.strip()
+            denominator_tag = row.find("span", class_="denominator")
+            denominator = (
+                denominator_tag.text.strip() if denominator_tag else "Каждая неделя"
+            )
+            schedule_data[day][course] = {
+                "time": time,
+                "type": course.split("(")[1][:-1],
+                "instructor": instructor,
+                "location": location,
+                "denominator": denominator,
+            }
+
+    return schedule_data
