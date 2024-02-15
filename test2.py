@@ -1,6 +1,6 @@
-import time
-import random
 import re
+
+from requests import post
 
 string = """
 </style>
@@ -19,7 +19,7 @@ string = """
                         if ($('#caps-message').length < 1)
                             $(this).after('<div id="caps-message">CAPSLOCK is on</div>');
                     } else {
-                        if ($('#caps-message').length > 0) $('#caps-message').remove();
+                        if ($('#caps-mess eage').length > 0) $('#caps-message').remove();
                     }
                 });
             });
@@ -180,35 +180,64 @@ string = """
 """
 
 
-def rand_str_login():
-    time_float = round(time.time())
-    random_char = "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=5))
-    result = str(time_float) + random_char
-    return result
+def get_payload(login, password):
+    payload = {}
+
+    regex_name = r'\_\w+\.attr\("name", \'([^\']+)\'\)'
+    regex_value = r'_\w+\.attr\("value", \'([^\']*)\'\s*\)'
+    regex_key = r"./user/key/(\d+)/"
+
+    name_matches = re.findall(regex_name, string)
+    value_matches = re.findall(regex_value, string)
+    key_matches = re.findall(regex_key, string)
+
+    key_for_encrypt = fetch_user_crypto_key(str(key_matches[0]))
+    print(key_for_encrypt)
+    encrypt_login = vigenere_cipher(login, key_for_encrypt)
+    encrypt_password = vigenere_cipher(password, key_for_encrypt)
+
+    value_matches.insert(0, encrypt_login)
+    value_matches.insert(2, encrypt_password)
+
+    for name, value in zip(name_matches, value_matches):
+        payload[name] = value
+
+    return payload
 
 
-pattern = r'\_\w+\.attr\("([^"]+)", \'([^\']+)\'\)'
-matches = re.findall(pattern, string)
-print(matches)
-result_dict = {}
+def vigenere_cipher(text, key):
+    alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    table = ["" for _ in range(len(alphabet))]
+    for i in range(len(alphabet)):
+        table[i] = alphabet[i:] + alphabet[:i]
 
-# Проход по каждому кортежу в списке
-for key, value in list_of_tuples:
-    # Если ключ уже есть в словаре, добавляем значение к списку значений
-    if key in result_dict:
-        result_dict[key].append(value)
-    # Иначе создаем новую запись в словаре с ключом и значением
+    encrypted_text = ""
+    key_repeated = ""
+    while len(key_repeated) < len(text):
+        key_repeated += key
+
+    for i in range(len(text)):
+        if text[i] in alphabet:
+            encrypted_text += table[alphabet.index(key_repeated[i])][
+                alphabet.index(text[i])
+            ]
+        else:
+            encrypted_text += text[i]
+
+    return encrypted_text
+
+
+def fetch_user_crypto_key(key: str) -> str | None:
+    url = f"http://univer.kstu.kz/user/key/{key}/"
+    response = post(url)
+
+    if response.status_code != 200:
+        print(f"Error: {response.status_code}: {response.reason}")
+        return None
     else:
-        result_dict[key] = [value]
+        return response.json()
 
-# Преобразование словаря в нужный формат
-list_of_dicts = [{key: value} for key, value in result_dict.items()]
 
-print(list_of_dicts)
-pattern = r"./user/key/(\d+)/"
-matches = re.findall(pattern, string)
-
-if matches:
-    print(matches[0])  # Выводим первое найденное значение после /user/key/
-else:
-    print("Значение после /user/key/ не найдено.")
+payload = get_payload("ivachshenko.gennadiy", "5t8x9m780165_")
+for i, j in payload.items():
+    print(f"{i}: {j}")
