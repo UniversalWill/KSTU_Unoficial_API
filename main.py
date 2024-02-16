@@ -17,7 +17,7 @@ async def get_schedule_endpoint(credentials: UserCredentials):
     Получить расписание для пользователя.
 
     Параметры:
-    - credentials: данные пользователя (логин и пароль)
+        - credentials: данные пользователя (login, password)
 
     Возвращает:
     - расписание в формате JSON
