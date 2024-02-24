@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from pydantic import BaseModel
-from Services.SheduleService import get_shedule
+from .Services.SheduleService import get_shedule
 
 app = FastAPI()
 

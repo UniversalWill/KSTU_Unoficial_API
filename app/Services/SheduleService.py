@@ -3,7 +3,7 @@ from typing import Dict, Optional
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import ClientError
 from bs4 import BeautifulSoup
-from Services.UserService import User
+from .UserService import User
 
 ScheduleData = Dict[str, Dict[str, Optional[Dict[str, str]]]]
 
