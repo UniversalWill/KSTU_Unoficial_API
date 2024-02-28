@@ -1,7 +1,7 @@
 import json
 from typing import Dict, Optional
 from aiohttp import ClientSession
-from aiohttp.client_exceptions import ClientError
+from aiohttp.client_exceptions import ClientError, ClientResponseError
 from bs4 import BeautifulSoup
 from .UserService import User
 
@@ -81,12 +81,16 @@ async def get_shedule(login: str, password: str) -> str | None:
 
                     return serialized_schedule
 
+            return "Authentication failed. Invalid credentials."
+
+    except ClientResponseError as e:
+        # Handle ClientResponseError (e.g., HTTP errors)
+        return f"HTTP error: {e}"
+
     except ClientError as e:
         # Handle ClientError (e.g., network issues)
-        print(f"Client error: {e}")
-        return None
+        return f"Client error: {e}"
 
     except Exception as e:
         # Handle other exceptions
-        print(f"Error: {e}")
-        return None
+        return f"Error: {e}"
