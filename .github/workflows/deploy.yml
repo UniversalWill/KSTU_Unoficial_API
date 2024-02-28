@@ -17,3 +17,4 @@ jobs:
           host: ${{ secrets.HOST }}
           user: ${{ secrets.USER_NAME }}
           key: ${{ secrets.PRIVATE_KEY }}
+          args: -tt
