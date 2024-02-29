@@ -1,9 +1,9 @@
 import json
 from typing import Dict, Optional
 from aiohttp import ClientSession
-from aiohttp.client_exceptions import ClientError, ClientResponseError
 from bs4 import BeautifulSoup
-from .UserService import User
+from fastapi.exceptions import HTTPException
+from .UserService import AuthenticationError, User
 
 ScheduleData = Dict[str, Dict[str, Optional[Dict[str, str]]]]
 
@@ -83,14 +83,5 @@ async def get_shedule(login: str, password: str) -> str | None:
 
             return "Authentication failed. Invalid credentials."
 
-    except ClientResponseError as e:
-        # Handle ClientResponseError (e.g., HTTP errors)
-        return f"HTTP error: {e}"
-
-    except ClientError as e:
-        # Handle ClientError (e.g., network issues)
-        return f"Client error: {e}"
-
-    except Exception as e:
-        # Handle other exceptions
-        return f"Error: {e}"
+    except AuthenticationError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
