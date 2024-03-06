@@ -1,4 +1,5 @@
 from typing import Dict
+
 from aiohttp.client import ClientSession
 from fastapi.exceptions import HTTPException
 

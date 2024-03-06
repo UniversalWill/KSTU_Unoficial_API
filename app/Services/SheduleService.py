@@ -1,8 +1,10 @@
 import json
 from typing import Dict, Optional
+
 from aiohttp import ClientSession
 from bs4 import BeautifulSoup
 from fastapi.exceptions import HTTPException
+
 from .UserService import AuthenticationError, User
 
 ScheduleData = Dict[str, Dict[str, Optional[Dict[str, str]]]]
@@ -80,8 +82,6 @@ async def get_shedule(login: str, password: str) -> str | None:
                     )
 
                     return serialized_schedule
-
-            return "Authentication failed. Invalid credentials."
 
     except AuthenticationError as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
