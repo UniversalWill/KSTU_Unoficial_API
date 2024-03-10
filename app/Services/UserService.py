@@ -15,12 +15,12 @@ class User:
         self.login = login
         self.password = password
 
-    async def fetch_cookies(self, http_service: HTTPService) -> None | Dict[str, str]:
+    async def fetch_cookies(self, http_service: HTTPService) -> Dict[str, str]:
         try:
-            response_text = http_service.fetch(
+            response = await http_service.fetch(
                 f"https://univerapi.kstu.kz/?login={self.login}&password={self.password}"
             )
-            cookies = response_text.cookies
+            cookies = response.cookies
             aspxauth_cookie = cookies.get(".ASPXAUTH")
             sessionid_cookie = cookies.get("ASP.NET_SessionId")
             if aspxauth_cookie and sessionid_cookie:
@@ -32,3 +32,5 @@ class User:
                 raise AuthenticationError()
         except Exception:
             raise AuthenticationError()
+        finally:
+            await http_service.close_session()
