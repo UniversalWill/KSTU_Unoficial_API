@@ -2,7 +2,9 @@ from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from pydantic import BaseModel
 
-from .Services.SheduleService import get_shedule
+from .Services.JournalService import JournalService
+from app.Services.SheduleService import SheduleService
+
 
 app = FastAPI()
 
@@ -23,7 +25,12 @@ async def get_schedule_endpoint(credentials: UserCredentials):
     Возвращает:
     - расписание в формате JSON
     """
-    return await get_shedule(credentials.login, credentials.password)
+    return await SheduleService.get_shedule(credentials.login, credentials.password)
+
+
+@app.post("/get_journal")
+async def get_openapi_endpoint(credentials: UserCredentials):
+    return await JournalService.get_journal(credentials.login, credentials.password)
 
 
 # Генерация документации OpenAPI с помощью FastAPI.openapi
