@@ -2,7 +2,7 @@ from typing import Dict
 
 from fastapi.exceptions import HTTPException
 
-from app.Services.HTTPService import HTTPService
+from app.Services.HTTPService import HttpService
 
 
 class AuthenticationError(HTTPException):
@@ -15,7 +15,7 @@ class User:
         self.login = login
         self.password = password
 
-    async def fetch_cookies(self, http_service: HTTPService) -> Dict[str, str]:
+    async def fetch_cookies(self, http_service: HttpService) -> Dict[str, str]:
         try:
             response = await http_service.fetch(
                 f"https://univerapi.kstu.kz/?login={self.login}&password={self.password}"

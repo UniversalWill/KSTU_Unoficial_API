@@ -4,7 +4,7 @@ from aiohttp.client import ClientResponse
 from bs4 import BeautifulSoup
 from fastapi.exceptions import HTTPException
 
-from app.Services.HTTPService import HTTPService
+from app.Services.HTTPService import HttpService
 from .UserService import AuthenticationError, User
 
 ScheduleData = Dict[str, Dict[str, Optional[Dict[str, str]]]]
@@ -12,7 +12,7 @@ ScheduleData = Dict[str, Dict[str, Optional[Dict[str, str]]]]
 
 async def get_shedule(login: str, password: str) -> str | None:
     try:
-        http_service = HTTPService()
+        http_service = HttpService()
         user: User = User(login, password)
         url: str = "https://univer.kstu.kz/student/myschedule/"
         headers: dict[str, str] = {
@@ -84,5 +84,5 @@ async def get_shedule(login: str, password: str) -> str | None:
 
     except AuthenticationError as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
-    finally:
-        await http_service.close_session()
+    # finally:
+    #     await http_service.close_session()
