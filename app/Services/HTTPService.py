@@ -1,5 +1,5 @@
 from aiohttp.client import ClientSession
-from typing import Optional
+from typing import Optional, Dict
 
 from aiohttp.client_exceptions import ClientConnectorError, InvalidURL
 
@@ -20,10 +20,12 @@ class HttpService:
     headers = _headers
 
     @staticmethod
-    async def get(url: str, headers: Optional[dict] = headers):
+    async def get(url: str, cookies: Dict[str, str], headers: Optional[dict] = headers):
         async with ClientSession() as session:
             try:
-                async with session.get(url, headers=headers) as response:
+                async with session.get(
+                    url, headers=headers, cookies=cookies
+                ) as response:
                     return await response.text()
             except (ClientConnectorError, InvalidURL):
                 raise HttpRequestError
@@ -33,15 +35,6 @@ class HttpService:
         async with ClientSession() as session:
             try:
                 async with session.get(url, headers=headers) as response:
-                    return response.cookies.output(header="", sep=";")
+                    return response.cookies
             except ClientConnectorError:
                 raise HttpRequestError
-
-    # async def fetch_cookies(
-    #     self,
-    #     url: str,
-    #     headers: None | Dict[str, str] = None,
-    #     cookies: None | Dict[str, str] = None,
-    # ):
-    #     async with self.session.get(url, headers=headers, cookies=cookies) as response:
-    #         return response.cookies
