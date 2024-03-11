@@ -19,6 +19,7 @@ class JournalService:
                     "AppleWebKit/537.36 (KHTML, like Gecko)"
                     "Chrome/106.0.0.0 Safari/537.36"
                 ),
+                "Accept-Language": "ru-RU,ru;q=0.5",
             }
 
             dict_cookie: Dict[str, str] = await user.fetch_cookies()
