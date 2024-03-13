@@ -35,41 +35,44 @@ class JournalService:
             )  # Находим все элементы с названием предметов
 
             for subject_element in subject_elements:
+                print(subject_element)
                 subject = (
                     subject_element.get_text(strip=True).split("[")[0].strip()
                 )  # Извлекаем название предмета
+                print(subject)
                 if subject.endswith("("):
                     subject = subject[:-1]
+                print(subject)
                 scores_element = subject_element.find_next(
                     "td", class_="ct"
                 )  # Находим элемент с баллами предмета
+                print(scores_element)
+
                 scores_text = scores_element.get_text(
                     strip=True
                 )  # Получаем текст с баллами
+                print(scores_text)
 
-                # Извлекаем баллы РК1
-                rk1_score = ""
-                rk1_index = scores_text.find("РК1 (100):")
-                if rk1_index != -1:
-                    rk1_score = (
-                        scores_text[rk1_index + len("РК1 (100):") :].split()[0].strip()
-                    )
-
-                # Извлекаем баллы РК2, начиная поиск с позиции, где начинается РК2
-                rk2_score = ""
-                rk2_index = scores_text.find("РК2 (100):")
-                if rk2_index != -1:
-                    rk2_score = (
-                        scores_text[rk2_index + len("РК2 (100):") :].split()[0].strip()
-                    )
-
-                if rk1_score.endswith("РК2"):
-                    rk1_score = rk1_score[:-3]
-                # Добавляем данные в расписание
-                journal_data[subject] = {
-                    "RK1": rk1_score,
-                    "RK2": rk2_score,
-                }
+                # # Извлекаем баллы РК1
+                # rk1_score = ""
+                # rk1_index = scores_text.find("РК1 (100):")
+                # if rk1_index != -1:
+                #     rk1_score = (
+                #         scores_text[rk1_index + len("РК1 (100):") :].split()[0].strip()
+                #     )
+                #
+                # # Извлекаем баллы РК2, начиная поиск с позиции, где начинается РК2
+                # rk2_score = ""
+                # rk2_index = scores_text.find("РК2 (100):")
+                # if rk2_index != -1:
+                #     rk2_score = (
+                #         scores_text[rk2_index + len("РК2 (100):") :].split()[0].strip()
+                #     )
+                #
+                # if rk1_score.endswith("РК2"):
+                #     rk1_score = rk1_score[:-3]
+                # # Добавляем данные в расписание
+                journal_data = scores_text
 
             # Сериализация в JSON и вывод
             serialized_journal = json.dumps(journal_data, ensure_ascii=False, indent=2)
