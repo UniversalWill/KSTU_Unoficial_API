@@ -1,10 +1,10 @@
 import json
 from typing import Dict
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 from fastapi.exceptions import HTTPException
 
-from .HTTPService import HttpService
 from .UserService import AuthenticationError, User
+from .HTTPService import HttpService
 
 
 class JournalService:
@@ -23,59 +23,69 @@ class JournalService:
             }
 
             dict_cookie: Dict[str, str] = await user.fetch_cookies()
+            print(dict_cookie)
             if not dict_cookie:
                 raise AuthenticationError
 
             response = await HttpService.get(url, headers=_headers, cookies=dict_cookie)
-            journal_data = {}
+            serialized_journal = {}
             soup = BeautifulSoup(response, "html.parser")
+            links = soup.find_all("a")
+            # print(links)
 
-            subject_elements = soup.find_all(
-                "td", class_="ct", unselectable="on"
-            )  # Находим все элементы с названием предметов
+            table_with_notes = None
+            for l in links:
+                if l["href"].startswith("/student/attendance/show/"):
+                    table_with_notes = l.parent.parent.parent
+                    break
 
-            for subject_element in subject_elements:
-                print(subject_element)
-                subject = (
-                    subject_element.get_text(strip=True).split("[")[0].strip()
-                )  # Извлекаем название предмета
-                print(subject)
-                if subject.endswith("("):
-                    subject = subject[:-1]
-                print(subject)
-                scores_element = subject_element.find_next(
-                    "td", class_="ct"
-                )  # Находим элемент с баллами предмета
-                print(scores_element)
+            if not table_with_notes:
+                raise ValueError("couldnt found table with notes")
 
-                scores_text = scores_element.get_text(
-                    strip=True
-                )  # Получаем текст с баллами
-                print(scores_text)
+            subjects = {}
+            current_subject_name = ""
+            current_subject_type = ""
+            current_rk = ""
+            for row in list(table_with_notes.children)[3:]:
+                if type(row) is Tag and row.has_attr("class") and "top" in row["class"]:
+                    current_subject_name = row.find_all(class_="ct")[0].text.strip()
+                    print("current_subject_name", current_subject_name)
+                    print(row)
+                    subjects[current_subject_name] = {}
+                    continue
 
-                # # Извлекаем баллы РК1
-                # rk1_score = ""
-                # rk1_index = scores_text.find("РК1 (100):")
-                # if rk1_index != -1:
-                #     rk1_score = (
-                #         scores_text[rk1_index + len("РК1 (100):") :].split()[0].strip()
-                #     )
-                #
-                # # Извлекаем баллы РК2, начиная поиск с позиции, где начинается РК2
-                # rk2_score = ""
-                # rk2_index = scores_text.find("РК2 (100):")
-                # if rk2_index != -1:
-                #     rk2_score = (
-                #         scores_text[rk2_index + len("РК2 (100):") :].split()[0].strip()
-                #     )
-                #
-                # if rk1_score.endswith("РК2"):
-                #     rk1_score = rk1_score[:-3]
-                # # Добавляем данные в расписание
-                journal_data = scores_text
+                if type(row) is Tag and len(links := row.find_all("a")) > 0:
+                    current_subject_type = links[0].text.strip()
+                    subjects[current_subject_name][current_subject_type] = {}
+                    continue
+
+                if not row.text.strip():
+                    continue
+
+                if len(trs := row.find_all("tr")) > 0:
+                    current_rk = trs[0].find_all("th")[0].text
+                    subjects[current_subject_name][current_subject_type][
+                        current_rk
+                    ] = {}
+
+                    dates = list(
+                        map(lambda x: x.text, list(trs[0].find_all("th"))[1:-2])
+                    )
+                    for i, note_tag in enumerate(list(trs[1].find_all("td")[:-2])):
+                        note = note_tag.text
+                        if not note_tag.text == "н":
+                            note = int(note_tag.text)
+
+                        subjects[current_subject_name][current_subject_type][
+                            current_rk
+                        ][dates[i]] = note
 
             # Сериализация в JSON и вывод
-            serialized_journal = json.dumps(journal_data, ensure_ascii=False, indent=2)
+            serialized_journal = (
+                json.dumps(subjects, ensure_ascii=False, indent=2)
+                .encode()
+                .decode("unicode_escape")
+            )
             return serialized_journal
 
         except AuthenticationError as e:
