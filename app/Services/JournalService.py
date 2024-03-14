@@ -23,7 +23,6 @@ class JournalService:
             }
 
             dict_cookie: Dict[str, str] = await user.fetch_cookies()
-            print(dict_cookie)
             if not dict_cookie:
                 raise AuthenticationError
 
@@ -49,8 +48,6 @@ class JournalService:
             for row in list(table_with_notes.children):
                 if type(row) is Tag and row.has_attr("class") and "top" in row["class"]:
                     current_subject_name = row.find_all(class_="ct")[0].text.strip()
-                    print("current_subject_name", current_subject_name)
-                    print(row)
                     subjects[current_subject_name] = {}
                     continue
 
@@ -79,13 +76,10 @@ class JournalService:
                         subjects[current_subject_name][current_subject_type][
                             current_rk
                         ][dates[i]] = note
-
+            first_key = next(iter(subjects))
+            subjects.pop(first_key)
             # Сериализация в JSON и вывод
-            serialized_journal = (
-                json.dumps(subjects, ensure_ascii=False, indent=2)
-                .encode()
-                .decode("unicode_escape")
-            )
+            serialized_journal = json.dumps(subjects, ensure_ascii=False, indent=2)
             return serialized_journal
 
         except AuthenticationError as e:
