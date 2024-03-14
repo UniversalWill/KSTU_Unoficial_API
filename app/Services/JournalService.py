@@ -46,7 +46,7 @@ class JournalService:
             current_subject_name = ""
             current_subject_type = ""
             current_rk = ""
-            for row in list(table_with_notes.children)[3:]:
+            for row in list(table_with_notes.children):
                 if type(row) is Tag and row.has_attr("class") and "top" in row["class"]:
                     current_subject_name = row.find_all(class_="ct")[0].text.strip()
                     print("current_subject_name", current_subject_name)
