@@ -1,6 +1,9 @@
-FROM python:3.11-alpine
+FROM python:3.12-alpine
 
 WORKDIR /code
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
 
 COPY ./requirements.txt /code/requirements.txt
 
